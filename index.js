@@ -42,6 +42,7 @@ function uglifyify(file, opts) {
   return through(function write(chunk) {
     buffer += chunk
   }, capture(function ready() {
+    var stream = this
     debug = opts.sourceMap !== false && debug
     opts  = xtend({
       compress: true,
@@ -67,33 +68,39 @@ function uglifyify(file, opts) {
       opts.sourceMap.content = 'inline'
     }
 
-    var min = ujs.minify(buffer, opts)
-    // we should catcch the min error if it comes back and end the stream
-    if (min.error) return this.emit('error', min.error)
+    return Promise.resolve(ujs.minify(buffer, opts)).then(function (min) {
+      // we should catch the min error if it comes back and end the stream
+      if (min.error) throw min.error
 
-    // Uglify leaves a source map comment pointing back to "out.js.map",
-    // which we want to get rid of because it confuses browserify.
-    min.code = min.code.replace(/\/\/[#@] ?sourceMappingURL=out.js.map$/, '')
-    this.queue(min.code)
+      // Uglify leaves a source map comment pointing back to "out.js.map",
+      // which we want to get rid of because it confuses browserify.
+      min.code = min.code.replace(/\/\/[#@] ?sourceMappingURL=out.js.map$/, '')
+      stream.queue(min.code)
 
-    if (min.map && min.map !== 'null') {
-      var map = convert.fromJSON(min.map)
+      if (min.map && min.map !== 'null') {
+        var map = convert.fromJSON(min.map)
 
-      map.setProperty('sources', [path.basename(file)])
+        map.setProperty('sources', [path.basename(file)])
 
-      this.queue('\n')
-      this.queue(map.toComment())
-    }
+        stream.queue('\n')
+        stream.queue(map.toComment())
+      }
 
-    this.queue(null)
+      stream.queue(null)
+    }, function (err) {
+      stream.emit('error', err)
+    })
   }))
 
   function capture(fn) {
     return function() {
+      var stream = this
       try {
-        fn.apply(this, arguments)
+        fn.apply(stream, arguments).catch(function (err) {
+          return stream.emit('error', err)
+        })
       } catch(err) {
-        return this.emit('error', err)
+        return stream.emit('error', err)
       }
     }
   }

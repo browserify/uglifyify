@@ -106,13 +106,13 @@ function closure() {
   return wrap('(function(){', '})()')
 }
 
-test('uglifyify: sourcemaps', function(t) {
+test('uglifyify: sourcemaps', async function(t) {
   t.plan(10)
 
   var src  = path.join(__dirname, 'fixture.js')
   var json = path.join(__dirname, 'fixture.json')
   var orig = fs.readFileSync(src, 'utf8')
-  var min  = uglify.minify(orig, {
+  var min  = await uglify.minify(orig, {
     sourceMap: {
       url: 'out.js.map'
     }
