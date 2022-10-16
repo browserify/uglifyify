@@ -15,7 +15,7 @@
     "browserify": "^17.0.0",
     "from2-string": "^1.1.0",
     "tap-spec": "^2.1.2",
-    "tape": "^3.2.0",
+    "tape": "^5.6.1",
     "wrap-stream": "^2.0.0"
   },
   "scripts": {
