@@ -1,6 +1,6 @@
 var minimatch = require('minimatch').Minimatch
   , convert = require('convert-source-map')
-  , through = require('through')
+  , through = require('through2')
   , path = require('path')
   , xtend = require('xtend')
 
@@ -40,9 +40,10 @@ function uglifyify(file, opts) {
   delete opts.x
   delete opts.uglify
 
-  return through(function write(chunk) {
+  return through(function write(chunk, _enc, callback) {
     buffer += chunk
-  }, capture(function ready() {
+    callback()
+  }, capture(function ready(callback) {
     var stream = this
     debug = opts.sourceMap !== false && debug
     opts  = xtend({
@@ -76,32 +77,30 @@ function uglifyify(file, opts) {
       // Uglify leaves a source map comment pointing back to "out.js.map",
       // which we want to get rid of because it confuses browserify.
       min.code = min.code.replace(/\/\/[#@] ?sourceMappingURL=out.js.map$/, '')
-      stream.queue(min.code)
+      stream.push(min.code)
 
       if (min.map && min.map !== 'null') {
         var map = convert.fromJSON(min.map)
 
         map.setProperty('sources', [path.basename(file)])
 
-        stream.queue('\n')
-        stream.queue(map.toComment())
+        stream.push('\n')
+        stream.push(map.toComment())
       }
 
-      stream.queue(null)
-    }, function (err) {
-      stream.emit('error', err)
+      callback()
     })
   }))
 
   function capture(fn) {
-    return function() {
+    return function(callback) {
       var stream = this
       try {
         fn.apply(stream, arguments).catch(function (err) {
-          return stream.emit('error', err)
+          callback(err)
         })
       } catch(err) {
-        return stream.emit('error', err)
+        callback(err)
       }
     }
   }

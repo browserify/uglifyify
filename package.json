@@ -7,7 +7,7 @@
     "convert-source-map": "^1.9.0",
     "minimatch": "^3.0.2",
     "terser": "^5.15.1",
-    "through": "~2.3.4",
+    "through2": "^4.0.2",
     "xtend": "^4.0.1"
   },
   "devDependencies": {
