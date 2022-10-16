@@ -1,6 +1,6 @@
 {
   "name": "@browserify/uglifyify",
-  "version": "5.0.2",
+  "version": "6.0.1",
   "description": "A browserify transform which minifies your code using Terser",
   "main": "index.js",
   "dependencies": {
@@ -11,11 +11,11 @@
     "xtend": "^4.0.1"
   },
   "devDependencies": {
-    "bl": "^0.9.3",
+    "bl": "^5.0.0",
     "browserify": "^17.0.0",
     "from2-string": "^1.1.0",
-    "tap-spec": "^2.1.2",
-    "tape": "^3.2.0",
+    "tap-spec": "^5.0.0",
+    "tape": "^5.6.1",
     "uglify-js": "^3.17.3",
     "wrap-stream": "^2.0.0"
   },

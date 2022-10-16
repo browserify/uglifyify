@@ -6,7 +6,7 @@ const test       = require('tape')
 const path       = require('path')
 const uglifyify  = require('../')
 const fs         = require('fs')
-const bl         = require('bl')
+const bl         = require('bl').BufferListStream
 
 let uglify
 try {
@@ -113,73 +113,75 @@ function closure() {
   return wrap('(function(){', '})()')
 }
 
-test('uglifyify: sourcemaps', async function(t) {
+test('uglifyify: sourcemaps', function(t) {
   t.plan(10)
 
-  var src  = path.join(__dirname, 'fixture.js')
-  var json = path.join(__dirname, 'fixture.json')
-  var orig = fs.readFileSync(src, 'utf8')
-  var min  = await uglify.minify(orig, {
-    sourceMap: {
-      url: 'out.js.map'
+  ;(async function () {
+    var src  = path.join(__dirname, 'fixture.js')
+    var json = path.join(__dirname, 'fixture.json')
+    var orig = fs.readFileSync(src, 'utf8')
+    var min  = await uglify.minify(orig, {
+      sourceMap: {
+        url: 'out.js.map'
+      }
+    })
+
+    var map = convert.fromJSON(min.map)
+    map.setProperty('sources', [src])
+    map.setProperty('sourcesContent', [orig])
+
+    var mapped = [orig, map.toComment()].join('\n')
+
+    from2(mapped)
+      .pipe(uglifyify(json, { uglify: uglify }))
+      .pipe(bl(doneWithMap))
+
+    from2(orig)
+      .pipe(uglifyify(json, { uglify: uglify }))
+      .pipe(bl(doneWithoutMap))
+
+    browserify({ entries: [src], debug: true })
+      .transform(uglifyify, { uglify: uglify })
+      .bundle()
+      .pipe(bl(doneWithMap))
+
+    browserify({ entries: [src], debug: false })
+      .transform(uglifyify, { uglify: uglify })
+      .bundle()
+      .pipe(bl(doneWithoutDebug))
+
+    from2(mapped)
+      .pipe(uglifyify(json, { _flags: { debug: false }, uglify: uglify }))
+      .pipe(bl(doneWithMapAndNoDebug))
+
+    function doneWithMap(err, data) {
+      if (err) return t.ifError(err)
+      data = String(data)
+      t.notEqual(data, orig, 'should have changed')
+      t.equal(data.match(/\/\/[@#]/g).length, 1, 'should have sourcemap')
     }
-  })
 
-  var map = convert.fromJSON(min.map)
-  map.setProperty('sources', [src])
-  map.setProperty('sourcesContent', [orig])
+    function doneWithoutMap(err, data) {
+      if (err) return t.ifError(err)
+      data = String(data)
+      t.equal(data, orig, 'should not have changed')
+      t.equal(data.indexOf(/\/\/[@#]/g), -1, 'should not have sourcemap')
+    }
 
-  var mapped = [orig, map.toComment()].join('\n')
+    function doneWithoutDebug(err, data) {
+      if (err) return t.ifError(err)
+      data = String(data)
+      t.notEqual(data, orig, 'should have changed')
+      t.equal(data.indexOf(/\/\/[@#]/g), -1, 'should not have sourcemap')
+    }
 
-  from2(mapped)
-    .pipe(uglifyify(json, { uglify: uglify }))
-    .pipe(bl(doneWithMap))
-
-  from2(orig)
-    .pipe(uglifyify(json, { uglify: uglify }))
-    .pipe(bl(doneWithoutMap))
-
-  browserify({ entries: [src], debug: true })
-    .transform(uglifyify, { uglify: uglify })
-    .bundle()
-    .pipe(bl(doneWithMap))
-
-  browserify({ entries: [src], debug: false })
-    .transform(uglifyify, { uglify: uglify })
-    .bundle()
-    .pipe(bl(doneWithoutDebug))
-
-  from2(mapped)
-    .pipe(uglifyify(json, { _flags: { debug: false }, uglify: uglify }))
-    .pipe(bl(doneWithMapAndNoDebug))
-
-  function doneWithMap(err, data) {
-    if (err) return t.ifError(err)
-    data = String(data)
-    t.notEqual(data, orig, 'should have changed')
-    t.equal(data.match(/\/\/[@#]/g).length, 1, 'should have sourcemap')
-  }
-
-  function doneWithoutMap(err, data) {
-    if (err) return t.ifError(err)
-    data = String(data)
-    t.equal(data, orig, 'should not have changed')
-    t.equal(data.indexOf(/\/\/[@#]/g), -1, 'should not have sourcemap')
-  }
-
-  function doneWithoutDebug(err, data) {
-    if (err) return t.ifError(err)
-    data = String(data)
-    t.notEqual(data, orig, 'should have changed')
-    t.equal(data.indexOf(/\/\/[@#]/g), -1, 'should not have sourcemap')
-  }
-
-  function doneWithMapAndNoDebug(err, data) {
-    if (err) return t.ifError(err)
-    data = String(data)
-    t.notEqual(data, orig, 'should have changed')
-    t.equal(data.match(/\/\/[@#]/g).length, 1, 'should have sourcemap')
-  }
+    function doneWithMapAndNoDebug(err, data) {
+      if (err) return t.ifError(err)
+      data = String(data)
+      t.notEqual(data, orig, 'should have changed')
+      t.equal(data.match(/\/\/[@#]/g).length, 1, 'should have sourcemap')
+    }
+  })()
 })
 
 test('uglifyify: transform is stable', function(t) {
