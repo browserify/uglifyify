@@ -16,6 +16,7 @@
     "from2-string": "^1.1.0",
     "tap-spec": "^2.1.2",
     "tape": "^3.2.0",
+    "uglify-js": "^3.17.3",
     "wrap-stream": "^2.0.0"
   },
   "scripts": {

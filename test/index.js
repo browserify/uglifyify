@@ -1,7 +1,6 @@
 const convert    = require('convert-source-map')
 const wrap       = require('wrap-stream')
 const browserify = require('browserify')
-const uglify     = require('terser')
 const from2      = require('from2-string')
 const test       = require('tape')
 const path       = require('path')
@@ -9,12 +8,20 @@ const uglifyify  = require('../')
 const fs         = require('fs')
 const bl         = require('bl')
 
+let uglify
+try {
+  uglify = require('terser')
+} catch (_err) {
+  // The terser version we use by default requires Node.js 10+
+  uglify = require('uglify-js')
+}
+
 test('uglifyify: sanity check', function(t) {
   var src  = path.join(__dirname, 'fixture.js')
   var orig = fs.readFileSync(src, 'utf8')
 
   fs.createReadStream(src)
-    .pipe(uglifyify(src))
+    .pipe(uglifyify(src, { uglify: uglify }))
     .pipe(bl(function(err, data) {
       if (err) return t.ifError(err)
       data = String(data)
@@ -31,7 +38,7 @@ test('uglifyify: ignores json', function(t) {
   var orig = fs.readFileSync(src, 'utf8')
 
   fs.createReadStream(src)
-    .pipe(uglifyify(json))
+    .pipe(uglifyify(json, { uglify: uglify }))
     .pipe(bl(buffered))
 
   function buffered(err, data) {
@@ -56,7 +63,7 @@ test('uglifyify: -t [ uglifyify --exts ]', function(t) {
 
   function check(name, ignored) {
     fs.createReadStream(src)
-      .pipe(uglifyify(name, { exts: ['mkdn' ], x: ['.obj2'] }))
+      .pipe(uglifyify(name, { exts: ['mkdn' ], x: ['.obj2'], uglify: uglify }))
       .pipe(bl(buffered))
 
     function buffered(err, data) {
@@ -77,7 +84,7 @@ test('uglifyify: passes options to uglify', function(t) {
 
   fs.createReadStream(src)
     .pipe(closure())
-    .pipe(uglifyify(src, { compress: { conditionals: false } }))
+    .pipe(uglifyify(src, { compress: { conditionals: false }, uglify: uglify }))
     .pipe(bl(buffered1))
 
   function buffered1(err, _buf1) {
@@ -87,7 +94,7 @@ test('uglifyify: passes options to uglify', function(t) {
 
     fs.createReadStream(src)
       .pipe(closure())
-      .pipe(uglifyify(src))
+      .pipe(uglifyify(src, { uglify: uglify }))
       .pipe(bl(buffered2))
   }
 
@@ -125,25 +132,25 @@ test('uglifyify: sourcemaps', async function(t) {
   var mapped = [orig, map.toComment()].join('\n')
 
   from2(mapped)
-    .pipe(uglifyify(json))
+    .pipe(uglifyify(json, { uglify: uglify }))
     .pipe(bl(doneWithMap))
 
   from2(orig)
-    .pipe(uglifyify(json))
+    .pipe(uglifyify(json, { uglify: uglify }))
     .pipe(bl(doneWithoutMap))
 
   browserify({ entries: [src], debug: true })
-    .transform(uglifyify)
+    .transform(uglifyify, { uglify: uglify })
     .bundle()
     .pipe(bl(doneWithMap))
 
   browserify({ entries: [src], debug: false })
-    .transform(uglifyify)
+    .transform(uglifyify, { uglify: uglify })
     .bundle()
     .pipe(bl(doneWithoutDebug))
 
   from2(mapped)
-    .pipe(uglifyify(json, { _flags: { debug: false }}))
+    .pipe(uglifyify(json, { _flags: { debug: false }, uglify: uglify }))
     .pipe(bl(doneWithMapAndNoDebug))
 
   function doneWithMap(err, data) {
@@ -180,6 +187,7 @@ test('uglifyify: transform is stable', function(t) {
 
   var src  = path.join(__dirname, 'fixture.js')
   var opts = {
+    uglify: uglify,
     _flags: {
       debug: false
     }

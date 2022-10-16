@@ -38,6 +38,7 @@ function uglifyify(file, opts) {
   delete opts.global
   delete opts.exts
   delete opts.x
+  delete opts.uglify
 
   return through(function write(chunk) {
     buffer += chunk
