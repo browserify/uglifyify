@@ -1,4 +1,4 @@
-# uglifyify
+# @browserify/uglifyify
 
 A [Browserify](http://browserify.org) transform which minifies your code
 using [terser](https://github.com/fabiosantoscode/terser).

@@ -2,7 +2,6 @@ var minimatch = require('minimatch').Minimatch
   , convert = require('convert-source-map')
   , through = require('through')
   , path = require('path')
-  , ujs = require('terser')
   , xtend = require('xtend')
 
 module.exports = uglifyify
@@ -11,6 +10,8 @@ function uglifyify(file, opts) {
   opts = xtend(opts || {})
 
   var debug = opts._flags && opts._flags.debug
+  // lazy require `terser` so uglifyify can be loaded on very old node.js versions
+  var ujs = opts.uglify || require('terser')
 
   if (ignore(file, opts.ignore)) {
     return through()
