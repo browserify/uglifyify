@@ -116,16 +116,14 @@ function closure() {
 test('uglifyify: sourcemaps', function(t) {
   t.plan(10)
 
-  ;(async function () {
-    var src  = path.join(__dirname, 'fixture.js')
-    var json = path.join(__dirname, 'fixture.json')
-    var orig = fs.readFileSync(src, 'utf8')
-    var min  = await uglify.minify(orig, {
-      sourceMap: {
-        url: 'out.js.map'
-      }
-    })
-
+  var src  = path.join(__dirname, 'fixture.js')
+  var json = path.join(__dirname, 'fixture.json')
+  var orig = fs.readFileSync(src, 'utf8')
+  Promise.resolve(uglify.minify(orig, {
+    sourceMap: {
+      url: 'out.js.map'
+    }
+  })).then(function (min) {
     var map = convert.fromJSON(min.map)
     map.setProperty('sources', [src])
     map.setProperty('sourcesContent', [orig])
@@ -181,7 +179,9 @@ test('uglifyify: sourcemaps', function(t) {
       t.notEqual(data, orig, 'should have changed')
       t.equal(data.match(/\/\/[@#]/g).length, 1, 'should have sourcemap')
     }
-  })()
+  }, function (err) {
+    t.ifError(err)
+  })
 })
 
 test('uglifyify: transform is stable', function(t) {
