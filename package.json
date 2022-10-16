@@ -14,6 +14,7 @@
     "bl": "^5.0.0",
     "browserify": "^17.0.0",
     "from2-string": "^1.1.0",
+    "standard": "^17.0.0",
     "tap-spec": "^5.0.0",
     "tape": "^5.6.1",
     "uglify-js": "^3.17.3",
@@ -21,7 +22,7 @@
   },
   "scripts": {
     "tests-only": "node test | tap-spec",
-    "lint": "true",
+    "lint": "standard",
     "test": "npm run lint && npm run tests-only"
   },
   "repository": {

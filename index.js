@@ -1,35 +1,34 @@
-var minimatch = require('minimatch').Minimatch
-  , convert = require('convert-source-map')
-  , through = require('through2')
-  , path = require('path')
-  , xtend = require('xtend')
+const minimatch = require('minimatch').Minimatch
+const convert = require('convert-source-map')
+const through = require('through2')
+const path = require('path')
+const xtend = require('xtend')
 
 module.exports = uglifyify
 
-function uglifyify(file, opts) {
+function uglifyify (file, opts) {
   opts = xtend(opts || {})
 
-  var debug = opts._flags && opts._flags.debug
+  let debug = opts._flags && opts._flags.debug
   // lazy require `terser` so uglifyify can be loaded on very old node.js versions
-  var ujs = opts.uglify || require('terser')
+  const ujs = opts.uglify || require('terser')
 
   if (ignore(file, opts.ignore)) {
     return through()
   }
 
-  var buffer = ''
-  var exts = []
+  let buffer = ''
+  const exts = []
     .concat(opts.exts || [])
     .concat(opts.x || [])
-    .map(function(d) {
+    .map(function (d) {
       if (d.charAt(0) === '.') return d
       return '.' + d
     })
 
   if (
     /\.json$/.test(file) ||
-    exts.length &&
-    exts.indexOf(path.extname(file)) === -1
+    (exts.length && exts.indexOf(path.extname(file)) === -1)
   ) {
     return through()
   }
@@ -40,13 +39,13 @@ function uglifyify(file, opts) {
   delete opts.x
   delete opts.uglify
 
-  return through(function write(chunk, _enc, callback) {
+  return through(function write (chunk, _enc, callback) {
     buffer += chunk
     callback()
-  }, capture(function ready(callback) {
-    var stream = this
+  }, capture(function ready (callback) {
+    const stream = this
     debug = opts.sourceMap !== false && debug
-    opts  = xtend({
+    opts = xtend({
       compress: true,
       mangle: true,
       sourceMap: {
@@ -80,7 +79,7 @@ function uglifyify(file, opts) {
       stream.push(min.code)
 
       if (min.map && min.map !== 'null') {
-        var map = convert.fromJSON(min.map)
+        const map = convert.fromJSON(min.map)
 
         map.setProperty('sources', [path.basename(file)])
 
@@ -92,27 +91,27 @@ function uglifyify(file, opts) {
     })
   }))
 
-  function capture(fn) {
-    return function(callback) {
-      var stream = this
+  function capture (fn) {
+    return function (callback) {
+      const stream = this
       try {
         fn.apply(stream, arguments).catch(function (err) {
           callback(err)
         })
-      } catch(err) {
+      } catch (err) {
         callback(err)
       }
     }
   }
 }
 
-function ignore(file, list) {
+function ignore (file, list) {
   if (!list) return
 
   list = Array.isArray(list) ? list : [list]
 
-  return list.some(function(pattern) {
-    var match = minimatch(pattern)
+  return list.some(function (pattern) {
+    const match = minimatch(pattern)
     return match.match(file)
   })
 }
