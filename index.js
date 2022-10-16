@@ -55,6 +55,7 @@ function uglifyify(file, opts) {
     mapArgv(opts)
 
     if (typeof opts.compress === 'object') {
+      opts.compress = xtend(opts.compress || {})
       delete opts.compress._
     }
 
