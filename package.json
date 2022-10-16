@@ -1,6 +1,6 @@
 {
   "name": "@browserify/uglifyify",
-  "version": "6.0.1",
+  "version": "6.0.0",
   "description": "A browserify transform which minifies your code using Terser",
   "main": "index.js",
   "dependencies": {
