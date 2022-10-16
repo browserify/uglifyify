@@ -1,12 +1,12 @@
 # uglifyify
 
-A [Browserify](http://browserify.org) v2 transform which minifies your code
-using [terser](https://github.com/fabiosantoscode/terser) (a maintained fork of uglify-es).
+A [Browserify](http://browserify.org) transform which minifies your code
+using [terser](https://github.com/fabiosantoscode/terser).
 
 ## Installation
 
 ``` bash
-npm install uglifyify
+npm install @browserify/uglifyify
 ```
 
 ## Motivation/Usage
@@ -14,7 +14,7 @@ npm install uglifyify
 Ordinarily you'd be fine doing this:
 
 ``` bash
-browserify index.js | uglifyjs -c > bundle.js
+browserify index.js | terser -c > bundle.js
 ```
 
 But uglifyify is able to yield smaller output by processing files individually
@@ -52,8 +52,8 @@ if (process.env.NODE_ENV === 'development') {
 And use this to compile:
 
 ``` bash
-NODE_ENV=development browserify -t envify -t uglifyify index.js -o dev.js &&
-NODE_ENV=production browserify -t envify -t uglifyify index.js -o prod.js
+NODE_ENV=development browserify -t envify -t @browserify/uglifyify index.js -o dev.js &&
+NODE_ENV=production browserify -t envify -t @browserify/uglifyify index.js -o prod.js
 ```
 
 It should go without saying that you should be hesitant using environment
@@ -72,7 +72,7 @@ command-line:
 ``` bash
 browserify     \
   -t coffeeify \
-  -t [ uglifyify -x .js -x .coffee ]
+  -t [ @browserify/uglifyify -x .js -x .coffee ]
 ```
 
 The above example will only minify `.js` and `.coffee` files, ignoring the rest.
@@ -85,7 +85,7 @@ default, transforms only alter your application code, but you can use global
 transforms to minify module code too. From your terminal:
 
 ``` bash
-browserify -g uglifyify ./index.js > bundle.js
+browserify -g @browserify/uglifyify ./index.js > bundle.js
 ```
 
 Or programatically:
@@ -96,7 +96,7 @@ var fs = require('fs')
 
 var bundler = browserify(__dirname + '/index.js')
 
-bundler.transform('uglifyify', { global: true  })
+bundler.transform('@browserify/uglifyify', { global: true  })
 
 bundler.bundle()
   .pipe(fs.createWriteStream(__dirname + '/bundle.js'))
@@ -115,13 +115,13 @@ option. Given one or more glob patterns, you can filter out specific files
 this way:
 
 ``` bash
-browserify -g [ uglifyify --ignore '**/node_modules/weakmap/*' ] ./index.js
+browserify -g [ @browserify/uglifyify --ignore '**/node_modules/weakmap/*' ] ./index.js
 ```
 
 ``` javascript
 var bundler = browserify('index.js')
 
-bundler.transform('uglifyify', {
+bundler.transform('@browserify/uglifyify', {
   global: true,
   ignore: [
       '**/node_modules/weakmap/*'
@@ -149,14 +149,14 @@ Source maps are enabled when:
 Enabling `--debug` with browserify is easy:
 
 ``` bash
-browserify -t uglifyify --debug index.js
+browserify -t @browserify/uglifyify --debug index.js
 ```
 ``` javascript
 var bundler = browserify({ debug: true })
 
 bundler
   .add('index.js')
-  .transform('uglifyify')
+  .transform('@browserify/uglifyify')
   .bundle()
   .pipe(process.stdout)
 ```
@@ -165,12 +165,12 @@ If you'd prefer them not to be included regardless, you can opt out
 using the `sourcemap` option:
 
 ``` bash
-browserify -t [ uglifyify --no-sourcemap ] app.js
+browserify -t [ @browserify/uglifyify --no-sourcemap ] app.js
 ```
 ``` javascript
 var bundler = browserify('index.js')
 
-bundler.transform('uglifyify', { sourceMap: false })
+bundler.transform('@browserify/uglifyify', { sourceMap: false })
   .bundle()
   .pipe(process.stdout)
 ```

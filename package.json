@@ -1,7 +1,7 @@
 {
-  "name": "uglifyify",
+  "name": "@browserify/uglifyify",
   "version": "5.0.2",
-  "description": "A browserify transform which minifies your code using UglifyJS2",
+  "description": "A browserify transform which minifies your code using Terser",
   "main": "index.js",
   "dependencies": {
     "convert-source-map": "~1.1.0",
@@ -23,7 +23,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/hughsk/uglifyify.git"
+    "url": "git://github.com/browserify/uglifyify.git"
   },
   "keywords": [
     "uglify",
