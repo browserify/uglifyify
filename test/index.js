@@ -2,7 +2,7 @@ const convert    = require('convert-source-map')
 const wrap       = require('wrap-stream')
 const browserify = require('browserify')
 const uglify     = require('terser')
-const from2      = require('from2')
+const from2      = require('from2-string')
 const test       = require('tape')
 const path       = require('path')
 const uglifyify  = require('../')
@@ -124,11 +124,11 @@ test('uglifyify: sourcemaps', function(t) {
 
   var mapped = [orig, map.toComment()].join('\n')
 
-  from2([mapped])
+  from2(mapped)
     .pipe(uglifyify(json))
     .pipe(bl(doneWithMap))
 
-  from2([orig])
+  from2(orig)
     .pipe(uglifyify(json))
     .pipe(bl(doneWithoutMap))
 
@@ -142,7 +142,7 @@ test('uglifyify: sourcemaps', function(t) {
     .bundle()
     .pipe(bl(doneWithoutDebug))
 
-  from2([mapped])
+  from2(mapped)
     .pipe(uglifyify(json, { _flags: { debug: false }}))
     .pipe(bl(doneWithMapAndNoDebug))
 
