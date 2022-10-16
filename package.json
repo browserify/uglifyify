@@ -5,7 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "convert-source-map": "~1.1.0",
-    "minimatch": "^3.0.2",
+    "minimatch": "^5.1.0",
     "terser": "^5.15.1",
     "through": "~2.3.4",
     "xtend": "^4.0.1"
