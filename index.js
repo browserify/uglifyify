@@ -2,12 +2,11 @@ const minimatch = require('minimatch').Minimatch
 const convert = require('convert-source-map')
 const through = require('through2')
 const path = require('path')
-const xtend = require('xtend')
 
 module.exports = uglifyify
 
 function uglifyify (file, opts) {
-  opts = xtend(opts || {})
+  opts = Object.assign({}, opts || {});
 
   let debug = opts._flags && opts._flags.debug
   // lazy require `terser` so uglifyify can be loaded on very old node.js versions
@@ -16,6 +15,7 @@ function uglifyify (file, opts) {
   if (ignore(file, opts.ignore)) {
     return through()
   }
+  delete opts.ignore;
 
   let buffer = ''
   const exts = []
@@ -45,7 +45,7 @@ function uglifyify (file, opts) {
   }, capture(function ready (callback) {
     const stream = this
     debug = opts.sourceMap !== false && debug
-    opts = xtend({
+    opts = Object.assign({
       compress: true,
       mangle: true,
       sourceMap: {
@@ -57,7 +57,7 @@ function uglifyify (file, opts) {
     mapArgv(opts)
 
     if (typeof opts.compress === 'object') {
-      opts.compress = xtend(opts.compress || {})
+      opts.compress = Object.assign({}, opts.compress || {})
       delete opts.compress._
     }
 
